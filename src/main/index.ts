@@ -6,15 +6,22 @@ import icon from '../../resources/icon.png?asset'
 function createWindow(): void {
   // Create the browser window.
   const mainWindow = new BrowserWindow({
-    width: 900,
-    height: 670,
-    show: false,
-    autoHideMenuBar: true,
-    ...(process.platform === 'linux' ? { icon } : {}),
+    width: 900, // 窗口宽度为900像素
+    height: 670, // 窗口高度为670像素
+    show: false, // 初始时不显示窗口，等渲染完成后再显示
+    autoHideMenuBar: true, // 自动隐藏菜单栏
+    ...(process.platform === 'linux' ? { icon } : {}), // 如果是Linux平台，设置窗口图标
     webPreferences: {
-      preload: join(__dirname, '../preload/index.js'),
-      sandbox: false
-    }
+      preload: join(__dirname, '../preload/index.js'), // 预加载脚本路径
+      sandbox: false // 关闭沙盒模式，允许Node.js API
+    },
+    frame: false, // 无边框窗口（自定义窗口样式）
+    transparent: true, // 窗口背景透明
+    alwaysOnTop: false, // 窗口始终置顶
+    skipTaskbar: false, // 不在任务栏显示
+    fullscreenable: false, // 禁止全屏
+    resizable: true, // 禁止调整窗口大小
+    maximizable: true, // 禁止最大化
   })
 
   mainWindow.on('ready-to-show', () => {
