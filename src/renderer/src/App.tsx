@@ -2,7 +2,7 @@ import SalaryCalculator from './components/SalaryCalculator'
 
 function App(): React.JSX.Element {
   return (
-    <div className="min-h-screen bg-gray-100 py-8">
+    <div className="h-screen w-screen flex flex-col overflow-hidden bg-gray-100">
       <SalaryCalculator />
     </div>
   )
