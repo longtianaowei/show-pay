@@ -80,7 +80,7 @@ export const useSalaryStore = create<SalaryState>((set, get) => ({
 
   calculateCurrentIncome: () => {
     const state = get()
-    const { paymentType, hourlyRate, dailyRate, monthlyRate, currentWorkTime, workHoursPerDay, workDaysPerMonth, overtimeRate, overtimeHours } = state
+    const { paymentType, hourlyRate, dailyRate, monthlyRate, currentWorkTime, workHoursPerDay, workDaysPerMonth, overtimeRate } = state
     
     const regularHours = Math.min(currentWorkTime / 3600, workHoursPerDay)
     const overtime = Math.max(0, currentWorkTime / 3600 - workHoursPerDay)

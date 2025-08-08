@@ -5,6 +5,7 @@
   "main": "./out/main/index.js",
   "author": "longtianaowei",
   "homepage": "https://electron-vite.org",
+  "type": "module",
   "scripts": {
     "format": "prettier --write .",
     "lint": "eslint --cache .",
