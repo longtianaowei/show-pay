@@ -81,11 +81,37 @@ const SalaryCalculator = () => {
     setPaymentType(e.target.value as PaymentType)
   }
 
+  // 窗口控制函数
+  const handleMinimize = () => {
+    window.api.minimizeWindow()
+  }
+
+  const handleClose = () => {
+    window.api.closeWindow()
+  }
+
   // 计算进度条
   const progress = calculateProgress(currentWorkTime, targetWorkTime)
 
   return (
-    <div className="h-full p-4 bg-white">
+    <div className="h-full p-4 bg-white relative">
+      {/* 窗口控制按钮 */}
+      <div className="absolute top-2 right-2 flex space-x-2">
+        <button 
+          onClick={handleMinimize}
+          className="w-6 h-6 rounded-full bg-yellow-500 hover:bg-yellow-600 flex items-center justify-center"
+        >
+          <span className="w-3 h-0.5 bg-yellow-900"></span>
+        </button>
+        <button 
+          onClick={handleClose}
+          className="w-6 h-6 rounded-full bg-red-500 hover:bg-red-600 flex items-center justify-center"
+        >
+          <span className="w-3 h-0.5 bg-red-900 rotate-45 absolute"></span>
+          <span className="w-3 h-0.5 bg-red-900 -rotate-45 absolute"></span>
+        </button>
+      </div>
+
       <h1 className="text-2xl font-bold text-center mb-4">实时薪资计算器</h1>
       
       <div className="flex h-[calc(100%-3rem)]">

@@ -7,7 +7,7 @@ function createWindow(): void {
   // Create the browser window.
   const mainWindow = new BrowserWindow({
     width: 900, // 窗口宽度为900像素
-    height: 670, // 窗口高度为670像素
+    height: 600, // 窗口高度为670像素
     show: false, // 初始时不显示窗口，等渲染完成后再显示
     autoHideMenuBar: true, // 自动隐藏菜单栏
     ...(process.platform === 'linux' ? { icon } : {}), // 如果是Linux平台，设置窗口图标
@@ -40,6 +40,15 @@ function createWindow(): void {
   } else {
     mainWindow.loadFile(join(__dirname, '../renderer/index.html'))
   }
+
+  // 监听窗口控制事件
+  ipcMain.on('window-minimize', () => {
+    mainWindow.minimize()
+  })
+
+  ipcMain.on('window-close', () => {
+    mainWindow.close()
+  })
 }
 
 // This method will be called when Electron has finished
