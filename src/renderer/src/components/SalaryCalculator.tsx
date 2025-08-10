@@ -2,7 +2,11 @@ import { useEffect, useState } from 'react'
 import { useSalaryStore, PaymentType } from '../store/salaryStore'
 import { formatTime, formatCurrency, calculateCountdown, calculateProgress } from '../utils/timerUtils'
 
-const SalaryCalculator = () => {
+interface SalaryCalculatorProps {
+  onStart?: () => void
+}
+
+const SalaryCalculator = ({ onStart }: SalaryCalculatorProps) => {
   const {
     paymentType,
     hourlyRate,
@@ -67,6 +71,7 @@ const SalaryCalculator = () => {
       stopTimer()
     } else {
       startTimer()
+      onStart?.()
     }
   }
 
