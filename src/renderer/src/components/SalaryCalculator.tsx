@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useSalaryStore, PaymentType } from '../store/salaryStore'
 import { formatTime, calculateCountdown, calculateProgress } from '../utils/timerUtils'
+import icon from '../assets/icon.png';
 
 interface SalaryCalculatorProps {
   onStart?: () => void
@@ -97,22 +98,22 @@ const SalaryCalculator = ({ onStart }: SalaryCalculatorProps) => {
   return (
     <div className="h-screen w-screen flex flex-col bg-[#f5f7fa]">
       {/* 顶部栏 */}
-      <div className="h-14 flex items-center justify-between px-8 bg-white shadow-sm select-none">
+      <div className="h-14 flex items-center justify-between px-3 bg-white shadow-sm select-none">
         <div className="flex items-center gap-3">
-          <img src="../assets/icon.png" alt="logo" className="w-8 h-8" />
-          <span className="text-2xl font-bold text-green-600 tracking-wide">实时薪资收入计算器</span>
+          <img src={icon} alt="logo" className="w-8 h-8" />
+          <span className="text-xl font-bold text-green-600 tracking-wide">牛马计薪器</span>
         </div>
         <div className="flex gap-2">
           <button
             onClick={() => window.api?.minimizeWindow?.()}
-            className="w-7 h-7 flex items-center justify-center rounded-full bg-yellow-400 hover:bg-yellow-300 transition-all duration-150 shadow focus:outline-none"
+            className="w-4 h-4 flex items-center justify-center rounded-full bg-yellow-400 hover:bg-yellow-300 transition-all duration-150 shadow focus:outline-none"
             title="最小化"
           >
             <svg width="14" height="14" viewBox="0 0 14 14"><rect x="3" y="6.25" width="8" height="1.5" rx="0.75" fill="#fff"/></svg>
           </button>
           <button
             onClick={() => window.api?.closeWindow?.()}
-            className="w-7 h-7 flex items-center justify-center rounded-full bg-red-500 hover:bg-red-400 transition-all duration-150 shadow focus:outline-none"
+            className="w-4 h-4 flex items-center justify-center rounded-full bg-red-500 hover:bg-red-400 transition-all duration-150 shadow focus:outline-none"
             title="关闭"
           >
             <svg width="14" height="14" viewBox="0 0 14 14"><line x1="4" y1="4" x2="10" y2="10" stroke="#fff" strokeWidth="1.2" strokeLinecap="round"/><line x1="10" y1="4" x2="4" y2="10" stroke="#fff" strokeWidth="1.2" strokeLinecap="round"/></svg>
@@ -123,11 +124,11 @@ const SalaryCalculator = ({ onStart }: SalaryCalculatorProps) => {
       <div className="flex-1 flex flex-row gap-4 px-2 py-2 bg-[#f5f7fa]">
         {/* 左侧设置区 */}
         <div className="w-[360px] bg-white rounded-2xl p-8 flex flex-col shadow-sm h-full">
-          <h2 className="text-xl font-bold mb-2 flex items-center gap-2">
+          <h2 className="text-xl font-bold flex items-center gap-2">
             <span className="inline-block text-green-500 text-2xl">￥</span> 薪资设置
           </h2>
           <p className="text-xs text-gray-400 mb-6">配置计算方式与工作时段，右侧将实时计算收入。</p>
-          <div className="mb-4">
+          <div className="mb-2">
             <label className="block text-sm mb-1 font-medium">计算方式</label>
             <select
               value={paymentType}
