@@ -15,9 +15,9 @@ function createWidgetWindow(): void {
     height: 120,
     frame: false,
     transparent: true,
-    alwaysOnTop: true,
+    alwaysOnTop: false,
     skipTaskbar: false,
-    resizable: false,
+    resizable: true, // 允许调整窗口大小，从而支持拖动
     maximizable: false,
     fullscreenable: false,
     webPreferences: {
@@ -39,7 +39,7 @@ function createWindow(): void {
   // Create the browser window.
   const mainWindow = new BrowserWindow({
     width: 900, // 窗口宽度为900像素
-    height: 600, // 窗口高度为670像素
+    height: 700, // 窗口高度为670像素
     show: false, // 初始时不显示窗口，等渲染完成后再显示
     autoHideMenuBar: true, // 自动隐藏菜单栏
     ...(process.platform === 'linux' ? { icon } : {}), // 如果是Linux平台，设置窗口图标
