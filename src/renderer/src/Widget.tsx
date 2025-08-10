@@ -1,13 +1,28 @@
 import { useEffect, useState } from 'react'
-import { useSalaryStore } from './store/salaryStore'
 
 const Widget = () => {
-  const { currentIncome, currentWorkTime, targetWorkTime, workEndTime } = useSalaryStore()
+  const [salaryData, setSalaryData] = useState({
+    currentIncome: 0,
+    currentWorkTime: 0,
+    targetWorkTime: 1,
+    workEndTime: '18:00'
+  })
   const [countdown, setCountdown] = useState('')
+
+  useEffect(() => {
+    const handler = (_event: any, data: any) => {
+      setSalaryData(data)
+    }
+    window.electron?.ipcRenderer?.on('salary-data', handler)
+    return () => {
+      window.electron?.ipcRenderer?.removeListener('salary-data', handler)
+    }
+  }, [])
+
   useEffect(() => {
     const timer = setInterval(() => {
       const now = new Date()
-      const [h, m] = workEndTime.split(':').map(Number)
+      const [h, m] = salaryData.workEndTime.split(':').map(Number)
       const end = new Date()
       end.setHours(h, m, 0, 0)
       const diff = Math.max(0, Math.floor((end.getTime() - now.getTime()) / 1000))
@@ -17,7 +32,8 @@ const Widget = () => {
       setCountdown(`${hStr}:${mStr}:${sStr}`)
     }, 1000)
     return () => clearInterval(timer)
-  }, [workEndTime])
+  }, [salaryData.workEndTime])
+
   return (
     <div style={{
       width: 240,
@@ -33,8 +49,8 @@ const Widget = () => {
       fontFamily: 'sans-serif',
       userSelect: 'none'
     }}>
-      <div style={{ fontSize: 18, fontWeight: 600 }}>实时收入：￥{currentIncome.toFixed(2)}</div>
-      <div style={{ fontSize: 14, margin: '8px 0' }}>进度：{((currentWorkTime / targetWorkTime) * 100).toFixed(1)}%</div>
+      <div style={{ fontSize: 18, fontWeight: 600 }}>实时收入：￥{salaryData.currentIncome.toFixed(2)}</div>
+      <div style={{ fontSize: 14, margin: '8px 0' }}>进度：{((salaryData.currentWorkTime / salaryData.targetWorkTime) * 100).toFixed(1)}%</div>
       <div style={{ fontSize: 14 }}>距离下班：{countdown}</div>
     </div>
   )

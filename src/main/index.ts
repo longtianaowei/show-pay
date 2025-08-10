@@ -124,3 +124,9 @@ app.on('window-all-closed', () => {
 ipcMain.on('open-widget-window', () => {
   createWidgetWindow()
 })
+
+ipcMain.on('salary-data-update', (_event, data) => {
+  if (widgetWindow) {
+    widgetWindow.webContents.send('salary-data', data)
+  }
+})

@@ -65,6 +65,17 @@ const SalaryCalculator = ({ onStart }: SalaryCalculatorProps) => {
     return () => clearInterval(countdownInterval)
   }, [workEndTime])
 
+  // 监听store数据变化，并通过ipcRenderer.send('salary-data-update', data)把最新数据发给主进程。
+  useEffect(() => {
+    const data = {
+      currentIncome,
+      currentWorkTime,
+      targetWorkTime,
+      workEndTime
+    }
+    window.electron?.ipcRenderer?.send('salary-data-update', data)
+  }, [currentIncome, currentWorkTime, targetWorkTime, workEndTime])
+
   // 处理计时器控制
   const handleTimerControl = () => {
     if (isTimerRunning) {
