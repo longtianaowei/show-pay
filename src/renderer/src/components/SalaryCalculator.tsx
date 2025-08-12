@@ -3,6 +3,11 @@ import { useSalaryStore, PaymentType } from '../store/salaryStore'
 import { formatTime, calculateCountdown, calculateProgress } from '../utils/timerUtils'
 import icon from '../assets/icon.png';
 
+function timeStringToMinutes(time: string) {
+  const [h, m] = time.split(':').map(Number)
+  return h * 60 + m
+}
+
 interface SalaryCalculatorProps {
   onStart?: () => void
 }
@@ -32,11 +37,14 @@ const SalaryCalculator = ({ onStart }: SalaryCalculatorProps) => {
     startTimer,
     stopTimer,
     resetTimer,
-    updateCurrentWorkTime
+    updateCurrentWorkTime,
+    overtimeHours,
+    setOvertimeHours
   } = useSalaryStore()
 
   const [countdown, setCountdown] = useState(0)
   const [timerInterval, setTimerInterval] = useState<NodeJS.Timeout | null>(null)
+  const [workStartTime, setWorkStartTime] = useState('09:30')
 
   useEffect(() => {
     if (isTimerRunning) {
@@ -71,6 +79,18 @@ const SalaryCalculator = ({ onStart }: SalaryCalculatorProps) => {
     }
     window.electron?.ipcRenderer?.send('salary-data-update', data)
   }, [currentIncome, currentWorkTime, targetWorkTime, workEndTime])
+
+  useEffect(() => {
+    // 自动计算每天工作小时
+    if (workStartTime && workEndTime) {
+      const start = timeStringToMinutes(workStartTime)
+      const end = timeStringToMinutes(workEndTime)
+      let diff = end - start
+      if (diff < 0) diff += 24 * 60 // 跨天
+      const hours = parseFloat((diff / 60).toFixed(2))
+      setWorkHoursPerDay(hours)
+    }
+  }, [workStartTime, workEndTime])
 
   const handleTimerControl = () => {
     if (isTimerRunning) {
@@ -109,24 +129,24 @@ const SalaryCalculator = ({ onStart }: SalaryCalculatorProps) => {
             className="w-4 h-4 flex items-center justify-center rounded-full bg-yellow-400 hover:bg-yellow-300 transition-all duration-150 shadow focus:outline-none"
             title="最小化"
           >
-            <svg width="14" height="14" viewBox="0 0 14 14"><rect x="3" y="6.25" width="8" height="1.5" rx="0.75" fill="#fff"/></svg>
+            <svg width="14" height="14" viewBox="0 0 14 14"><rect x="3" y="6.25" width="8" height="1.5" rx="0.75" fill="#fff" /></svg>
           </button>
           <button
             onClick={() => window.api?.closeWindow?.()}
             className="w-4 h-4 flex items-center justify-center rounded-full bg-red-500 hover:bg-red-400 transition-all duration-150 shadow focus:outline-none"
             title="关闭"
           >
-            <svg width="14" height="14" viewBox="0 0 14 14"><line x1="4" y1="4" x2="10" y2="10" stroke="#fff" strokeWidth="1.2" strokeLinecap="round"/><line x1="10" y1="4" x2="4" y2="10" stroke="#fff" strokeWidth="1.2" strokeLinecap="round"/></svg>
+            <svg width="14" height="14" viewBox="0 0 14 14"><line x1="4" y1="4" x2="10" y2="10" stroke="#fff" strokeWidth="1.2" strokeLinecap="round" /><line x1="10" y1="4" x2="4" y2="10" stroke="#fff" strokeWidth="1.2" strokeLinecap="round" /></svg>
           </button>
         </div>
       </div>
       {/* 内容区 */}
       <div className="flex-1 flex flex-row gap-4 px-2 py-2 bg-[#f5f7fa]">
         {/* 左侧设置区 */}
-        <div className="w-[360px] bg-white rounded-2xl p-8 flex flex-col shadow-sm h-full">
-          <h2 className="text-xl font-bold flex items-center gap-2">
+        <div className="w-[360px] bg-white rounded-2xl p-6 flex flex-col shadow-sm h-full">
+          {/* <h2 className="text-xl font-bold flex items-center gap-2">
             <span className="inline-block text-green-500 text-2xl">￥</span> 薪资设置
-          </h2>
+          </h2> */}
           <p className="text-xs text-gray-400 mb-6">配置计算方式与工作时段，右侧将实时计算收入。</p>
           <div className="mb-2">
             <label className="block text-sm mb-1 font-medium">计算方式</label>
@@ -141,7 +161,7 @@ const SalaryCalculator = ({ onStart }: SalaryCalculatorProps) => {
             </select>
           </div>
           {paymentType === 'hourly' && (
-            <div className="mb-4">
+            <div className="mb-2">
               <label className="block text-sm mb-1 font-medium">时薪（元/小时）</label>
               <input
                 type="number"
@@ -152,7 +172,7 @@ const SalaryCalculator = ({ onStart }: SalaryCalculatorProps) => {
             </div>
           )}
           {paymentType === 'daily' && (
-            <div className="mb-4">
+            <div className="mb-2">
               <label className="block text-sm mb-1 font-medium">日薪（元/天）</label>
               <input
                 type="number"
@@ -163,7 +183,7 @@ const SalaryCalculator = ({ onStart }: SalaryCalculatorProps) => {
             </div>
           )}
           {paymentType === 'monthly' && (
-            <div className="mb-4">
+            <div className="mb-2">
               <label className="block text-sm mb-1 font-medium">月薪（元/月）</label>
               <input
                 type="number"
@@ -173,44 +193,14 @@ const SalaryCalculator = ({ onStart }: SalaryCalculatorProps) => {
               />
             </div>
           )}
-          <div className="mb-4">
-            <label className="block text-sm mb-1 font-medium">每天工作小时</label>
-            <input
-              type="number"
-              value={workHoursPerDay}
-              onChange={e => setWorkHoursPerDay(parseFloat(e.target.value) || 0)}
-              className="w-full p-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-200 bg-gray-50"
-            />
-          </div>
-          {paymentType === 'monthly' && (
-            <div className="mb-4">
-              <label className="block text-sm mb-1 font-medium">每月工作天数</label>
-              <input
-                type="number"
-                value={workDaysPerMonth}
-                onChange={e => setWorkDaysPerMonth(parseFloat(e.target.value) || 0)}
-                className="w-full p-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-200 bg-gray-50"
-              />
-            </div>
-          )}
-          <div className="mb-4">
-            <label className="block text-sm mb-1 font-medium">加班倍率</label>
-            <input
-              type="number"
-              value={overtimeRate}
-              onChange={e => setOvertimeRate(parseFloat(e.target.value) || 0)}
-              step="0.1"
-              className="w-full p-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-200 bg-gray-50"
-            />
-          </div>
-          <div className="flex gap-2 mb-4">
+                    <div className="flex gap-2 mb-4">
             <div className="flex-1">
               <label className="block text-sm mb-1 font-medium">上班时间</label>
               <input
                 type="time"
-                value="09:30"
-                disabled
-                className="w-full p-2 border border-gray-200 rounded-lg bg-gray-50 text-gray-400"
+                value={workStartTime}
+                onChange={e => setWorkStartTime(e.target.value)}
+                className="w-full p-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-200 bg-gray-50"
               />
             </div>
             <div className="flex-1">
@@ -223,10 +213,50 @@ const SalaryCalculator = ({ onStart }: SalaryCalculatorProps) => {
               />
             </div>
           </div>
-          <div className="flex items-center mt-2">
+          <div className="mb-2">
+            <label className="block text-sm mb-1 font-medium">每天工作小时</label>
+            <input
+              type="number"
+              value={workHoursPerDay}
+              onChange={e => setWorkHoursPerDay(parseFloat(e.target.value) || 0)}
+              className="w-full p-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-200 bg-gray-50"
+            />
+          </div>
+          {paymentType === 'monthly' && (
+            <div className="mb-2">
+              <label className="block text-sm mb-1 font-medium">每月工作天数</label>
+              <input
+                type="number"
+                value={workDaysPerMonth}
+                onChange={e => setWorkDaysPerMonth(parseFloat(e.target.value) || 0)}
+                className="w-full p-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-200 bg-gray-50"
+              />
+            </div>
+          )}
+          <div className="mb-2">
+            <label className="block text-sm mb-1 font-medium">每天加班小时</label>
+            <input
+              type="number"
+              value={overtimeHours}
+              onChange={e => setOvertimeHours(parseFloat(e.target.value) || 0)}
+              step="0.1"
+              className="w-full p-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-200 bg-gray-50"
+            />
+          </div>
+          <div className="mb-2">
+            <label className="block text-sm mb-1 font-medium">加班倍率</label>
+            <input
+              type="number"
+              value={overtimeRate}
+              onChange={e => setOvertimeRate(parseFloat(e.target.value) || 0)}
+              step="0.1"
+              className="w-full p-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-200 bg-gray-50"
+            />
+          </div>
+          {/* <div className="flex items-center mt-2">
             <input type="checkbox" className="mr-2 rounded" disabled />
             <span className="text-xs text-gray-400">在上班时段自动开始</span>
-          </div>
+          </div> */}
         </div>
         {/* 右侧数据区 */}
         <div className="flex-1 flex flex-col h-full min-w-[420px] ">
