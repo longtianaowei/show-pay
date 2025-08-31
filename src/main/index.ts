@@ -11,13 +11,13 @@ function createWidgetWindow(): void {
     return
   }
   widgetWindow = new BrowserWindow({
-    width: 260,
+    width: 280,
     height: 120,
     frame: false,
     transparent: true,
     alwaysOnTop: false,
     skipTaskbar: false,
-    resizable: true, // 允许调整窗口大小，从而支持拖动
+    resizable: false,
     maximizable: false,
     fullscreenable: false,
     webPreferences: {
@@ -52,7 +52,7 @@ function createWindow(): void {
     alwaysOnTop: false, // 窗口始终置顶
     skipTaskbar: false, // 不在任务栏显示
     fullscreenable: false, // 禁止全屏
-    resizable: true, // 禁止调整窗口大小
+    resizable: false,
     maximizable: true, // 禁止最大化
   })
 

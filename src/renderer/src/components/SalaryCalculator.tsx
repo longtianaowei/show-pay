@@ -101,7 +101,8 @@ const SalaryCalculator = ({ onStart }: SalaryCalculatorProps) => {
     setPaymentType(e.target.value as PaymentType)
   }
 
-  const progress = calculateProgress(currentWorkTime, targetWorkTime)
+  const totalTargetTime = targetWorkTime + (overtimeHours * 3600)
+  const progress = calculateProgress(currentWorkTime, totalTargetTime)
   const circleRadius = 70
   const circleCircumference = 2 * Math.PI * circleRadius
   const progressStroke = (progress / 100) * circleCircumference
@@ -305,7 +306,7 @@ const SalaryCalculator = ({ onStart }: SalaryCalculatorProps) => {
                     strokeDasharray={circleCircumference}
                     strokeDashoffset={circleCircumference - (isStarted ? progressStroke : 0)}
                     strokeLinecap="round"
-                    style={{ transition: 'stroke-dashoffset 0.5s' }}
+                    style={{ transition: 'stroke-dashoffset 0.5s', transform: 'rotate(-90deg)', transformOrigin: '50% 50%' }}
                   />
                   {/* 起点圆点 */}
                   {isStarted && progress > 0 && (
@@ -324,7 +325,7 @@ const SalaryCalculator = ({ onStart }: SalaryCalculatorProps) => {
                     {isStarted ? `${Math.round(progress)}%` : '0%'}
                   </div>
                   <div className="text-base text-gray-500 font-medium">工作进度</div>
-                  <div className="text-sm text-gray-400 mt-1">目标 {workHoursPerDay} 小时</div>
+                  <div className="text-sm text-gray-400 mt-1">目标 {(workHoursPerDay + overtimeHours).toFixed(1)} 小时</div>
                 </div>
               </div>
             </div>

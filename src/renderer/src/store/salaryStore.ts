@@ -183,25 +183,25 @@ export const useSalaryStore = create<SalaryState>((set, get) => ({
     set(() => ({
       currentWorkTime: realWorkTime,
       currentIncome: (() => {
-        const { paymentType, hourlyRate, dailyRate, monthlyRate, workHoursPerDay, workDaysPerMonth, overtimeRate, overtimeHours } = newState
+        const { paymentType, hourlyRate, dailyRate, monthlyRate, workHoursPerDay, workDaysPerMonth, overtimeRate } = newState
         
         const workedHours = realWorkTime / 3600
         const regularHours = Math.min(workedHours, workHoursPerDay)
-        const overtime = overtimeHours
+        const actualOvertimeHours = Math.max(0, workedHours - workHoursPerDay)
         
         let income = 0
         
         switch (paymentType) {
           case 'hourly':
-            income = regularHours * hourlyRate + overtime * hourlyRate * overtimeRate
+            income = regularHours * hourlyRate + actualOvertimeHours * hourlyRate * overtimeRate
             break
           case 'daily':
             const hourlyFromDaily = dailyRate / workHoursPerDay
-            income = regularHours * hourlyFromDaily + overtime * hourlyFromDaily * overtimeRate
+            income = regularHours * hourlyFromDaily + actualOvertimeHours * hourlyFromDaily * overtimeRate
             break
           case 'monthly':
             const hourlyFromMonthly = monthlyRate / (workDaysPerMonth * workHoursPerDay)
-            income = regularHours * hourlyFromMonthly + overtime * hourlyFromMonthly * overtimeRate
+            income = regularHours * hourlyFromMonthly + actualOvertimeHours * hourlyFromMonthly * overtimeRate
             break
         }
         
@@ -212,25 +212,25 @@ export const useSalaryStore = create<SalaryState>((set, get) => ({
 
   calculateCurrentIncome: () => {
     const state = get()
-    const { paymentType, hourlyRate, dailyRate, monthlyRate, currentWorkTime, workHoursPerDay, workDaysPerMonth, overtimeRate, overtimeHours } = state
+    const { paymentType, hourlyRate, dailyRate, monthlyRate, currentWorkTime, workHoursPerDay, workDaysPerMonth, overtimeRate } = state
     
     const workedHours = currentWorkTime / 3600
     const regularHours = Math.min(workedHours, workHoursPerDay)
-    const overtime = overtimeHours
+    const actualOvertimeHours = Math.max(0, workedHours - workHoursPerDay)
     
     let income = 0
     
     switch (paymentType) {
       case 'hourly':
-        income = regularHours * hourlyRate + overtime * hourlyRate * overtimeRate
+        income = regularHours * hourlyRate + actualOvertimeHours * hourlyRate * overtimeRate
         break
       case 'daily':
         const hourlyFromDaily = dailyRate / workHoursPerDay
-        income = regularHours * hourlyFromDaily + overtime * hourlyFromDaily * overtimeRate
+        income = regularHours * hourlyFromDaily + actualOvertimeHours * hourlyFromDaily * overtimeRate
         break
       case 'monthly':
         const hourlyFromMonthly = monthlyRate / (workDaysPerMonth * workHoursPerDay)
-        income = regularHours * hourlyFromMonthly + overtime * hourlyFromMonthly * overtimeRate
+        income = regularHours * hourlyFromMonthly + actualOvertimeHours * hourlyFromMonthly * overtimeRate
         break
     }
     
