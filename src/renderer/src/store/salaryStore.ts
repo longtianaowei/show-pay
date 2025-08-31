@@ -35,11 +35,13 @@ interface SalaryState {
   setOvertimeRate: (rate: number) => void
   setOvertimeHours: (hours: number) => void
   setWorkEndTime: (time: string) => void
+  setWorkStartTime: (time: string) => void
   startTimer: () => void
   stopTimer: () => void
   resetTimer: () => void
   updateCurrentWorkTime: (seconds: number) => void
   calculateCurrentIncome: () => number
+  workStartTime: string
 }
 
 export const useSalaryStore = create<SalaryState>((set, get) => ({
@@ -47,11 +49,12 @@ export const useSalaryStore = create<SalaryState>((set, get) => ({
   hourlyRate: 100,
   dailyRate: 800,
   monthlyRate: 15000,
-  workHoursPerDay: 8,
+  workHoursPerDay: 9,
   workDaysPerMonth: 22,
   overtimeRate: 1.5,
   overtimeHours: 0,
   workEndTime: '18:00',
+  workStartTime: '09:00',
   currentWorkTime: 0,
   targetWorkTime: 8 * 3600, // 默认8小时工作制
   currentIncome: 0,
@@ -65,7 +68,28 @@ export const useSalaryStore = create<SalaryState>((set, get) => ({
   setWorkDaysPerMonth: (days) => set({ workDaysPerMonth: days }),
   setOvertimeRate: (rate) => set({ overtimeRate: rate }),
   setOvertimeHours: (hours) => set({ overtimeHours: hours }),
-  setWorkEndTime: (time) => set({ workEndTime: time }),
+  setWorkStartTime: (time) => set((state) => {
+    // 自动计算每天工作小时
+    const [sh, sm] = time.split(':').map(Number)
+    const [eh, em] = state.workEndTime.split(':').map(Number)
+    let start = sh * 60 + sm
+    let end = eh * 60 + em
+    let diff = end - start
+    if (diff < 0) diff += 24 * 60
+    const hours = parseFloat((diff / 60).toFixed(2))
+    return { workStartTime: time, workHoursPerDay: hours, targetWorkTime: hours * 3600 }
+  }),
+  setWorkEndTime: (time) => set((state) => {
+    // 自动计算每天工作小时
+    const [sh, sm] = state.workStartTime.split(':').map(Number)
+    const [eh, em] = time.split(':').map(Number)
+    let start = sh * 60 + sm
+    let end = eh * 60 + em
+    let diff = end - start
+    if (diff < 0) diff += 24 * 60
+    const hours = parseFloat((diff / 60).toFixed(2))
+    return { workEndTime: time, workHoursPerDay: hours, targetWorkTime: hours * 3600 }
+  }),
 
   startTimer: () => set({ isTimerRunning: true }),
   stopTimer: () => set({ isTimerRunning: false }),

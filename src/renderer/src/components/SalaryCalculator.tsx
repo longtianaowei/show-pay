@@ -3,11 +3,6 @@ import { useSalaryStore, PaymentType } from '../store/salaryStore'
 import { formatTime, calculateCountdown, calculateProgress } from '../utils/timerUtils'
 import icon from '../assets/icon.png';
 
-function timeStringToMinutes(time: string) {
-  const [h, m] = time.split(':').map(Number)
-  return h * 60 + m
-}
-
 interface SalaryCalculatorProps {
   onStart?: () => void
 }
@@ -22,6 +17,7 @@ const SalaryCalculator = ({ onStart }: SalaryCalculatorProps) => {
     workDaysPerMonth,
     overtimeRate,
     workEndTime,
+    workStartTime,
     currentWorkTime,
     targetWorkTime,
     currentIncome,
@@ -34,6 +30,7 @@ const SalaryCalculator = ({ onStart }: SalaryCalculatorProps) => {
     setWorkDaysPerMonth,
     setOvertimeRate,
     setWorkEndTime,
+    setWorkStartTime,
     startTimer,
     stopTimer,
     resetTimer,
@@ -44,7 +41,6 @@ const SalaryCalculator = ({ onStart }: SalaryCalculatorProps) => {
 
   const [countdown, setCountdown] = useState(0)
   const [timerInterval, setTimerInterval] = useState<NodeJS.Timeout | null>(null)
-  const [workStartTime, setWorkStartTime] = useState('09:30')
 
   useEffect(() => {
     if (isTimerRunning) {
@@ -80,18 +76,6 @@ const SalaryCalculator = ({ onStart }: SalaryCalculatorProps) => {
     window.electron?.ipcRenderer?.send('salary-data-update', data)
   }, [currentIncome, currentWorkTime, targetWorkTime, workEndTime])
 
-  useEffect(() => {
-    // 自动计算每天工作小时
-    if (workStartTime && workEndTime) {
-      const start = timeStringToMinutes(workStartTime)
-      const end = timeStringToMinutes(workEndTime)
-      let diff = end - start
-      if (diff < 0) diff += 24 * 60 // 跨天
-      const hours = parseFloat((diff / 60).toFixed(2))
-      setWorkHoursPerDay(hours)
-    }
-  }, [workStartTime, workEndTime])
-
   const handleTimerControl = () => {
     if (isTimerRunning) {
       stopTimer()
@@ -118,12 +102,12 @@ const SalaryCalculator = ({ onStart }: SalaryCalculatorProps) => {
   return (
     <div className="h-screen w-screen flex flex-col bg-[#f5f7fa]">
       {/* 顶部栏 */}
-      <div className="h-14 flex items-center justify-between px-3 bg-white shadow-sm select-none">
+      <div className="h-14 flex items-center justify-between px-3 bg-white shadow-sm select-none" style={{ WebkitAppRegion: 'drag' }}>
         <div className="flex items-center gap-3">
           <img src={icon} alt="logo" className="w-8 h-8" />
           <span className="text-xl font-bold text-green-600 tracking-wide">牛马计薪器</span>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2" style={{ WebkitAppRegion: 'no-drag' }}>
           <button
             onClick={() => window.api?.minimizeWindow?.()}
             className="w-4 h-4 flex items-center justify-center rounded-full bg-yellow-400 hover:bg-yellow-300 transition-all duration-150 shadow focus:outline-none"
@@ -193,7 +177,7 @@ const SalaryCalculator = ({ onStart }: SalaryCalculatorProps) => {
               />
             </div>
           )}
-                    <div className="flex gap-2 mb-4">
+          <div className="flex gap-2 mb-4">
             <div className="flex-1">
               <label className="block text-sm mb-1 font-medium">上班时间</label>
               <input

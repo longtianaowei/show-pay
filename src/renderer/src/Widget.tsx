@@ -47,7 +47,8 @@ const Widget = () => {
       justifyContent: 'center',
       alignItems: 'center',
       fontFamily: 'sans-serif',
-      userSelect: 'none'
+      userSelect: 'none',
+      WebkitAppRegion: 'drag'
     }}>
       <div style={{ fontSize: 18, fontWeight: 600 }}>实时收入：￥{salaryData.currentIncome.toFixed(2)}</div>
       <div style={{ fontSize: 14, margin: '8px 0' }}>进度：{((salaryData.currentWorkTime / salaryData.targetWorkTime) * 100).toFixed(1)}%</div>
