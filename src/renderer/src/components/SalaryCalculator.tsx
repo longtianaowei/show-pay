@@ -18,6 +18,8 @@ const SalaryCalculator = ({ onStart }: SalaryCalculatorProps) => {
     overtimeRate,
     workEndTime,
     workStartTime,
+    lunchStartTime,
+    lunchEndTime,
     currentWorkTime,
     targetWorkTime,
     currentIncome,
@@ -31,6 +33,8 @@ const SalaryCalculator = ({ onStart }: SalaryCalculatorProps) => {
     setOvertimeRate,
     setWorkEndTime,
     setWorkStartTime,
+    setLunchStartTime,
+    setLunchEndTime,
     startTimer,
     stopTimer,
     resetTimer,
@@ -193,6 +197,26 @@ const SalaryCalculator = ({ onStart }: SalaryCalculatorProps) => {
                 type="time"
                 value={workEndTime}
                 onChange={e => setWorkEndTime(e.target.value)}
+                className="w-full p-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-200 bg-gray-50"
+              />
+            </div>
+          </div>
+          <div className="flex gap-2 mb-4">
+            <div className="flex-1">
+              <label className="block text-sm mb-1 font-medium">午休开始</label>
+              <input
+                type="time"
+                value={lunchStartTime}
+                onChange={e => setLunchStartTime(e.target.value)}
+                className="w-full p-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-200 bg-gray-50"
+              />
+            </div>
+            <div className="flex-1">
+              <label className="block text-sm mb-1 font-medium">午休结束</label>
+              <input
+                type="time"
+                value={lunchEndTime}
+                onChange={e => setLunchEndTime(e.target.value)}
                 className="w-full p-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-200 bg-gray-50"
               />
             </div>
