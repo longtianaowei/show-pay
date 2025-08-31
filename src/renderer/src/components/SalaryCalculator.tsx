@@ -39,7 +39,6 @@ const SalaryCalculator = ({ onStart }: SalaryCalculatorProps) => {
     startTimer,
     stopTimer,
     resetTimer,
-    updateCurrentWorkTime,
     updateWorkTimeFromClock,
     overtimeHours,
     setOvertimeHours,
@@ -110,12 +109,20 @@ const SalaryCalculator = ({ onStart }: SalaryCalculatorProps) => {
   return (
     <div className="h-screen w-screen flex flex-col bg-[#f5f7fa]">
       {/* 顶部栏 */}
-      <div className="h-14 flex items-center justify-between px-3 bg-white shadow-sm select-none" style={{ WebkitAppRegion: 'drag' }}>
+      <div className="h-14 flex items-center justify-between px-3 bg-white shadow-sm select-none" 
+        style={{ 
+         // @ts-expect-error: WebkitAppRegion 不是标准属性，但 Electron 支持
+        WebkitAppRegion: 'drag' 
+        }}>
         <div className="flex items-center gap-3">
           <img src={icon} alt="logo" className="w-8 h-8" />
           <span className="text-xl font-bold text-green-600 tracking-wide">牛马计薪器</span>
         </div>
-        <div className="flex gap-2" style={{ WebkitAppRegion: 'no-drag' }}>
+        <div className="flex gap-2" 
+          style={{ 
+           // @ts-expect-error: WebkitAppRegion 不是标准属性，但 Electron 支持
+          WebkitAppRegion: 'no-drag' 
+           }}>
           <button
             onClick={() => window.api?.minimizeWindow?.()}
             className="w-4 h-4 flex items-center justify-center rounded-full bg-yellow-400 hover:bg-yellow-300 transition-all duration-150 shadow focus:outline-none"
@@ -225,26 +232,28 @@ const SalaryCalculator = ({ onStart }: SalaryCalculatorProps) => {
               />
             </div>
           </div>
-          <div className="mb-2">
-            <label className="block text-sm mb-1 font-medium">每天工作小时</label>
-            <input
-              type="number"
-              value={workHoursPerDay}
-              onChange={e => setWorkHoursPerDay(parseFloat(e.target.value) || 0)}
-              className="w-full p-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-200 bg-gray-50"
-            />
-          </div>
-          {paymentType === 'monthly' && (
-            <div className="mb-2">
-              <label className="block text-sm mb-1 font-medium">每月工作天数</label>
+          <div className="flex gap-2 mb-2">
+            <div className="flex-1">
+              <label className="block text-sm mb-1 font-medium">每天工作小时</label>
               <input
                 type="number"
-                value={workDaysPerMonth}
-                onChange={e => setWorkDaysPerMonth(parseFloat(e.target.value) || 0)}
+                value={workHoursPerDay}
+                onChange={e => setWorkHoursPerDay(parseFloat(e.target.value) || 0)}
                 className="w-full p-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-200 bg-gray-50"
               />
             </div>
-          )}
+            {paymentType === 'monthly' && (
+              <div className="flex-1">
+                <label className="block text-sm mb-1 font-medium">每月工作天数</label>
+                <input
+                  type="number"
+                  value={workDaysPerMonth}
+                  onChange={e => setWorkDaysPerMonth(parseFloat(e.target.value) || 0)}
+                  className="w-full p-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-200 bg-gray-50"
+                />
+              </div>
+            )}
+          </div>
           <div className="mb-2">
             <label className="block text-sm mb-1 font-medium">每天加班小时</label>
             <input

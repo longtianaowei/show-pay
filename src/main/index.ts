@@ -28,7 +28,7 @@ function createWidgetWindow(): void {
   if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
     widgetWindow.loadURL(process.env['ELECTRON_RENDERER_URL'] + '/#/widget')
   } else {
-    widgetWindow.loadFile(join(__dirname, '../renderer/index.html'), { hash: 'widget' })
+    widgetWindow.loadFile(join(__dirname, '../renderer/index.html'), { hash: '/widget' })
   }
   widgetWindow.on('closed', () => {
     widgetWindow = null

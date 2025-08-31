@@ -49,6 +49,7 @@ const Widget = () => {
     <div 
       className="w-[280px] h-[120px] bg-gradient-to-br from-green-500/95 to-emerald-500/95 rounded-[20px] p-4 px-5 flex flex-col justify-between font-sans select-none backdrop-blur-sm border border-white/20"
       style={{ 
+        // @ts-expect-error: WebkitAppRegion 不是标准属性，但 Electron 支持
         WebkitAppRegion: 'drag',
         boxShadow: '0 8px 32px rgba(34, 197, 94, 0.3), 0 2px 8px rgba(0,0,0,0.1)'
       }}
