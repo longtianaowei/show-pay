@@ -24,6 +24,7 @@ const SalaryCalculator = ({ onStart }: SalaryCalculatorProps) => {
     targetWorkTime,
     currentIncome,
     isTimerRunning,
+    isStarted,
     setPaymentType,
     setHourlyRate,
     setDailyRate,
@@ -39,8 +40,10 @@ const SalaryCalculator = ({ onStart }: SalaryCalculatorProps) => {
     stopTimer,
     resetTimer,
     updateCurrentWorkTime,
+    updateWorkTimeFromClock,
     overtimeHours,
-    setOvertimeHours
+    setOvertimeHours,
+    calculateHourlyRate
   } = useSalaryStore()
 
   const [countdown, setCountdown] = useState(0)
@@ -49,7 +52,7 @@ const SalaryCalculator = ({ onStart }: SalaryCalculatorProps) => {
   useEffect(() => {
     if (isTimerRunning) {
       const interval = setInterval(() => {
-        updateCurrentWorkTime(currentWorkTime + 1)
+        updateWorkTimeFromClock()
       }, 1000)
       setTimerInterval(interval)
     } else if (timerInterval) {
@@ -61,7 +64,7 @@ const SalaryCalculator = ({ onStart }: SalaryCalculatorProps) => {
         clearInterval(timerInterval)
       }
     }
-  }, [isTimerRunning, currentWorkTime])
+  }, [isTimerRunning, updateWorkTimeFromClock])
 
   useEffect(() => {
     const countdownInterval = setInterval(() => {
@@ -275,7 +278,9 @@ const SalaryCalculator = ({ onStart }: SalaryCalculatorProps) => {
               <div className="flex-1 flex flex-col items-start justify-center pl-4">
                 <span className="text-gray-500 text-base font-medium mb-1">当前累计</span>
                 <div className="flex items-end gap-2">
-                  <span className="text-4xl font-bold text-green-600">￥{currentIncome.toFixed(2)}</span>
+                  <span className="text-4xl font-bold text-green-600">
+                    {isStarted ? `￥${currentIncome.toFixed(2)}` : '￥0.00'}
+                  </span>
                   <span className="text-gray-400 text-sm mb-1">税前</span>
                 </div>
               </div>
@@ -298,12 +303,12 @@ const SalaryCalculator = ({ onStart }: SalaryCalculatorProps) => {
                     strokeWidth="18"
                     fill="none"
                     strokeDasharray={circleCircumference}
-                    strokeDashoffset={circleCircumference - progressStroke}
+                    strokeDashoffset={circleCircumference - (isStarted ? progressStroke : 0)}
                     strokeLinecap="round"
                     style={{ transition: 'stroke-dashoffset 0.5s' }}
                   />
                   {/* 起点圆点 */}
-                  {progress > 0 && (
+                  {isStarted && progress > 0 && (
                     <circle
                       cx={90 + circleRadius * Math.cos(-Math.PI / 2)}
                       cy={90 + circleRadius * Math.sin(-Math.PI / 2)}
@@ -315,7 +320,9 @@ const SalaryCalculator = ({ onStart }: SalaryCalculatorProps) => {
                 </svg>
                 {/* 居中内容 */}
                 <div className="absolute top-0 left-0 w-full h-full flex flex-col items-center justify-center select-none pointer-events-none">
-                  <div className="text-3xl font-extrabold text-black mb-1">{Math.round(progress)}%</div>
+                  <div className="text-3xl font-extrabold text-black mb-1">
+                    {isStarted ? `${Math.round(progress)}%` : '0%'}
+                  </div>
                   <div className="text-base text-gray-500 font-medium">工作进度</div>
                   <div className="text-sm text-gray-400 mt-1">目标 {workHoursPerDay} 小时</div>
                 </div>
@@ -325,15 +332,19 @@ const SalaryCalculator = ({ onStart }: SalaryCalculatorProps) => {
             <div className="grid grid-cols-2 gap-3 mb-6">
               <div className="bg-gray-50 rounded-xl p-3 flex flex-col items-center shadow-sm">
                 <span className="text-xs text-gray-400 flex items-center gap-1"><span className="text-green-500">⏱</span>已工作</span>
-                <span className="text-base font-semibold text-gray-700">{formatTime(currentWorkTime)}</span>
+                <span className="text-base font-semibold text-gray-700">
+                  {isStarted ? formatTime(currentWorkTime) : '00:00:00'}
+                </span>
               </div>
               <div className="bg-gray-50 rounded-xl p-3 flex flex-col items-center shadow-sm">
                 <span className="text-xs text-gray-400 flex items-center gap-1"><span className="text-orange-400">⏰</span>距离下班</span>
-                <span className="text-base font-semibold text-gray-700">{formatTime(countdown)}</span>
+                <span className="text-base font-semibold text-gray-700">
+                  {isStarted ? formatTime(countdown) : '00:00:00'}
+                </span>
               </div>
               <div className="bg-gray-50 rounded-xl p-3 flex flex-col items-center shadow-sm">
                 <span className="text-xs text-gray-400 flex items-center gap-1"><span className="text-green-500">￥</span>当前折算时薪</span>
-                <span className="text-base font-semibold text-gray-700">￥{hourlyRate.toFixed(2)}</span>
+                <span className="text-base font-semibold text-gray-700">￥{calculateHourlyRate().toFixed(2)}</span>
               </div>
               <div className="bg-gray-50 rounded-xl p-3 flex flex-col items-center shadow-sm">
                 <span className="text-xs text-gray-400 flex items-center gap-1"><span className="bg-green-100 text-green-600 rounded px-2 py-0.5 text-xs">模式</span></span>
@@ -341,7 +352,9 @@ const SalaryCalculator = ({ onStart }: SalaryCalculatorProps) => {
               </div>
               <div className="bg-gray-50 rounded-xl p-3 flex flex-col items-center shadow-sm col-span-2">
                 <span className="text-xs text-gray-400 flex items-center gap-1"><span className="text-pink-400">⏳</span>加班时长</span>
-                <span className="text-base font-semibold text-gray-700">0.00 h</span>
+                <span className="text-base font-semibold text-gray-700">
+                  {isStarted ? `${overtimeHours.toFixed(2)} h` : '0.00 h'}
+                </span>
               </div>
               <div className="bg-gray-50 rounded-xl p-3 flex flex-col items-center shadow-sm col-span-2">
                 <span className="text-xs text-gray-400 flex items-center gap-1"><span className="text-blue-400">🕒</span>计划工时</span>
@@ -352,12 +365,12 @@ const SalaryCalculator = ({ onStart }: SalaryCalculatorProps) => {
             <div className="mb-6">
               <div className="flex justify-between text-xs mb-1">
                 <span>工作进度</span>
-                <span>{progress.toFixed(1)}%</span>
+                <span>{isStarted ? progress.toFixed(1) : '0.0'}%</span>
               </div>
               <div className="w-full bg-gray-200 rounded-full h-2">
                 <div
                   className="bg-green-500 h-2 rounded-full transition-all duration-300"
-                  style={{ width: `${progress}%` }}
+                  style={{ width: `${isStarted ? progress : 0}%` }}
                 ></div>
               </div>
             </div>

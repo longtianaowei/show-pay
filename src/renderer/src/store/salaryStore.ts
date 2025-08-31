@@ -27,6 +27,42 @@ const calculateWorkHours = (startTime: string, endTime: string, lunchStart: stri
   return parseFloat((totalWorkMin / 60).toFixed(2))
 }
 
+// 计算从上班时间到当前时间的已工作时间（排除午休）
+const calculateCurrentWorkTime = (workStart: string, lunchStart: string, lunchEnd: string): number => {
+  const now = new Date()
+  const [sh, sm] = workStart.split(':').map(Number)
+  const [lsh, lsm] = lunchStart.split(':').map(Number)
+  const [leh, lem] = lunchEnd.split(':').map(Number)
+  
+  const startOfDay = new Date()
+  startOfDay.setHours(sh, sm, 0, 0)
+  
+  const lunchStartTime = new Date()
+  lunchStartTime.setHours(lsh, lsm, 0, 0)
+  
+  const lunchEndTime = new Date()
+  lunchEndTime.setHours(leh, lem, 0, 0)
+  
+  // 如果还没到上班时间，返回0
+  if (now < startOfDay) return 0
+  
+  let workedSeconds = Math.floor((now.getTime() - startOfDay.getTime()) / 1000)
+  
+  // 如果已经过了午休开始时间，需要减去午休时间
+  if (now > lunchStartTime) {
+    const lunchDuration = Math.floor((lunchEndTime.getTime() - lunchStartTime.getTime()) / 1000)
+    if (now > lunchEndTime) {
+      // 已经过了午休结束时间，减去完整午休时间
+      workedSeconds -= lunchDuration
+    } else {
+      // 正在午休中，减去已经午休的时间
+      workedSeconds -= Math.floor((now.getTime() - lunchStartTime.getTime()) / 1000)
+    }
+  }
+  
+  return Math.max(0, workedSeconds)
+}
+
 interface SalaryState {
   // 计算方式
   paymentType: PaymentType
@@ -53,6 +89,8 @@ interface SalaryState {
   currentIncome: number
   // 是否正在计时
   isTimerRunning: boolean
+  // 是否已开始（表单配置完成并点击开始）
+  isStarted: boolean
   // 方法
   setPaymentType: (type: PaymentType) => void
   setHourlyRate: (rate: number) => void
@@ -70,7 +108,9 @@ interface SalaryState {
   stopTimer: () => void
   resetTimer: () => void
   updateCurrentWorkTime: (seconds: number) => void
+  updateWorkTimeFromClock: () => void
   calculateCurrentIncome: () => number
+  calculateHourlyRate: () => number
   workStartTime: string
 }
 
@@ -91,6 +131,7 @@ export const useSalaryStore = create<SalaryState>((set, get) => ({
   targetWorkTime: 8 * 3600, // 默认8小时工作制
   currentIncome: 0,
   isTimerRunning: false,
+  isStarted: false,
 
   setPaymentType: (type) => set({ paymentType: type }),
   setHourlyRate: (rate) => set({ hourlyRate: rate }),
@@ -119,14 +160,53 @@ export const useSalaryStore = create<SalaryState>((set, get) => ({
     return { lunchEndTime: time, workHoursPerDay: hours, targetWorkTime: hours * 3600 }
   }),
 
-  startTimer: () => set({ isTimerRunning: true }),
+  startTimer: () => set({ isTimerRunning: true, isStarted: true }),
   stopTimer: () => set({ isTimerRunning: false }),
-  resetTimer: () => set({ currentWorkTime: 0, currentIncome: 0 }),
+  resetTimer: () => set({ currentWorkTime: 0, currentIncome: 0, isStarted: false }),
 
   updateCurrentWorkTime: (seconds) => {
-    set((state) => ({ 
+    const state = get()
+    if (!state.isStarted) return
+    set(() => ({ 
       currentWorkTime: seconds,
       currentIncome: state.calculateCurrentIncome()
+    }))
+  },
+
+  updateWorkTimeFromClock: () => {
+    const state = get()
+    if (!state.isStarted) return
+    
+    const realWorkTime = calculateCurrentWorkTime(state.workStartTime, state.lunchStartTime, state.lunchEndTime)
+    const newState = { ...state, currentWorkTime: realWorkTime }
+    
+    set(() => ({
+      currentWorkTime: realWorkTime,
+      currentIncome: (() => {
+        const { paymentType, hourlyRate, dailyRate, monthlyRate, workHoursPerDay, workDaysPerMonth, overtimeRate, overtimeHours } = newState
+        
+        const workedHours = realWorkTime / 3600
+        const regularHours = Math.min(workedHours, workHoursPerDay)
+        const overtime = overtimeHours
+        
+        let income = 0
+        
+        switch (paymentType) {
+          case 'hourly':
+            income = regularHours * hourlyRate + overtime * hourlyRate * overtimeRate
+            break
+          case 'daily':
+            const hourlyFromDaily = dailyRate / workHoursPerDay
+            income = regularHours * hourlyFromDaily + overtime * hourlyFromDaily * overtimeRate
+            break
+          case 'monthly':
+            const hourlyFromMonthly = monthlyRate / (workDaysPerMonth * workHoursPerDay)
+            income = regularHours * hourlyFromMonthly + overtime * hourlyFromMonthly * overtimeRate
+            break
+        }
+        
+        return parseFloat(income.toFixed(2))
+      })()
     }))
   },
 
@@ -134,9 +214,9 @@ export const useSalaryStore = create<SalaryState>((set, get) => ({
     const state = get()
     const { paymentType, hourlyRate, dailyRate, monthlyRate, currentWorkTime, workHoursPerDay, workDaysPerMonth, overtimeRate, overtimeHours } = state
     
-    const regularHours = Math.min(currentWorkTime / 3600, workHoursPerDay)
-    // const overtime = Math.max(0, currentWorkTime / 3600 - workHoursPerDay)
-    const overtime = overtimeHours // 由用户输入
+    const workedHours = currentWorkTime / 3600
+    const regularHours = Math.min(workedHours, workHoursPerDay)
+    const overtime = overtimeHours
     
     let income = 0
     
@@ -155,5 +235,34 @@ export const useSalaryStore = create<SalaryState>((set, get) => ({
     }
     
     return parseFloat(income.toFixed(2))
+  },
+
+  calculateHourlyRate: () => {
+    const { paymentType, hourlyRate, dailyRate, monthlyRate, workHoursPerDay, workDaysPerMonth, overtimeHours, overtimeRate } = get()
+    
+    let baseHourlyRate = 0
+    
+    switch (paymentType) {
+      case 'hourly':
+        baseHourlyRate = hourlyRate
+        break
+      case 'daily':
+        baseHourlyRate = dailyRate / workHoursPerDay
+        break
+      case 'monthly':
+        baseHourlyRate = monthlyRate / (workDaysPerMonth * workHoursPerDay)
+        break
+    }
+    
+    // 如果有加班时间，计算包含加班费的平均时薪
+    if (overtimeHours > 0) {
+      const totalHours = workHoursPerDay + overtimeHours
+      const regularIncome = workHoursPerDay * baseHourlyRate
+      const overtimeIncome = overtimeHours * baseHourlyRate * overtimeRate
+      const totalIncome = regularIncome + overtimeIncome
+      return parseFloat((totalIncome / totalHours).toFixed(2))
+    }
+    
+    return parseFloat(baseHourlyRate.toFixed(2))
   }
 })) 
